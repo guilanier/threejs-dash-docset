@@ -50,8 +50,8 @@ class Builder:
             shutil.rmtree(path.join(output, 'docs', name, removeLang))
 
     def _parse(self):
-        with open(path.join(self.cwd, 'output', 'docs', 'list.js'), encoding='utf-8') as f:
-            pages = f.read().replace('var list =', '')        
+        with open(path.join(self.cwd, 'output', 'docs', 'list.json'), encoding='utf-8') as f:
+            pages = f.read().replace('var list =', '')
 
         self.items = dirtyjson.loads(pages)[self.lang]
 
@@ -63,12 +63,14 @@ class Builder:
         os.makedirs(path.join('threejs.docset', 'Contents', 'Resources'))
         conn = sqlite3.connect(path.join('threejs.docset', 'Contents', 'Resources', 'docSet.dsidx'))
         c = conn.cursor()
-        c.execute('''CREATE TABLE searchIndex(id INTEGER PRIMARY KEY, name TEXT, type TEXT, path TEXT)''')
-        c.execute('''CREATE UNIQUE INDEX anchor ON searchIndex (name, type, path)''')
+        c.execute('CREATE TABLE searchIndex(id INTEGER PRIMARY KEY, name TEXT, type TEXT, path TEXT);')
+        c.execute('CREATE UNIQUE INDEX anchor ON searchIndex (name, type, path);')
+        
+        self._index_group(self.items['Reference'], 'Class', c)
         self._index_group(self.items['Manual'], 'Guide', c)
         self._index_group(self.items['Developer Reference'], 'Guide', c)
         self._index_group(self.items['Examples'], 'Class', c)
-        self._index_group(self.items['Reference'], 'Class', c)
+        
         self._index_examples(c)
 
         conn.commit()
@@ -91,7 +93,6 @@ class Builder:
         for item in glob.glob(path.join(self.cwd, 'output', 'examples', '*.html')):
             filename = path.basename(item)
             items.append((filename.replace('.html', ''), 'Sample', 'examples/' + filename))
-
         cursor.executemany("INSERT INTO searchIndex(name, type, path) VALUES (?, ?, ?)", items)
         
 
@@ -99,8 +100,8 @@ class Builder:
         items = []
         for group in groups.items():
             for item in group[1].items():
-                items.append((item[0], type, 'docs/' + item[1] + '.html'))
-
+                items.append((item[0], type, 'docs/index.html#' + item[1]));
+                # items.append((item[0], type, 'docs/' + item[1] + '.html'));
         cursor.executemany("INSERT INTO searchIndex(name, type, path) VALUES (?, ?, ?)", items)
 
     def build(self):
