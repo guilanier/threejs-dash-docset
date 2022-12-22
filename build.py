@@ -69,7 +69,7 @@ class Builder:
         self._index_group(self.items['Reference'], 'Class', c)
         self._index_group(self.items['Manual'], 'Guide', c)
         self._index_group(self.items['Developer Reference'], 'Guide', c)
-        self._index_group(self.items['Examples'], 'Class', c)
+        self._index_group(self.items['Addons'], 'Class', c)
         
         self._index_examples(c)
 
@@ -106,8 +106,8 @@ class Builder:
 
     def build(self):
         os.chdir(self.src)
-        self._checkout()
-        self._buildSource()
+        # self._checkout()
+        # self._buildSource()
         self._copy()
         self._parse()
         self._index()
